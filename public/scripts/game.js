@@ -43,6 +43,31 @@ function addOtherPlayer(self, playerInfo, worldLayer) {
     return self.otherPlayers.add(otherPlayer);
 }
 
+function playerPlayMoveAnim(player, direction, animName) {
+    const prevVelocity = player.body.velocity.clone();
+    switch (direction) {
+        case "left": {
+            return player.anims.play(animName || "misa-left-walk", true);
+        }
+        case "right": {
+            return player.anims.play(animName || "misa-right-walk", true);
+        }
+        case "down": {
+            return player.anims.play(animName || "misa-front-walk", true);
+        }
+        case "up": {
+            return player.anims.play(animName || "misa-back-walk", true);
+        }
+        default: {
+            player.anims.stop();
+            if (prevVelocity.x < 0) player.setTexture("atlas", "misa-left");
+            else if (prevVelocity.x > 0) player.setTexture("atlas", "misa-right");
+            else if (prevVelocity.y < 0) player.setTexture("atlas", "misa-back");
+            else if (prevVelocity.y > 0) player.setTexture("atlas", "misa-front");
+        }
+    }
+}
+
 function preload() {
     this.load.image("tiles", "./assets/tuxmon-sample-32px-extruded.png");
     this.load.tilemapTiledJSON("map", "./assets/tuxemon-town.json");
@@ -114,7 +139,7 @@ function create() {
             if (playerInfo.playerId === otherPlayer.playerId) {
                 otherPlayer.setRotation(playerInfo.rotation);
                 otherPlayer.setPosition(playerInfo.x, playerInfo.y);
-                otherPlayer.anims.play("misa-front-walk", true);
+                playerPlayMoveAnim(otherPlayer,playerInfo.direction)
             }
         });
     });
@@ -181,11 +206,27 @@ function create() {
 function update(time, delta) {
     const speed = 175;
     const player = this.player;
+    let playerDirection;
+
     if (player) {
         const x = player.x;
         const y = player.y;
         const r = player.rotation;
 
+        // Update the animation last and give left/right animations precedence over up/down animations
+        if (cursors.left.isDown)
+            playerDirection = "left";
+        else if (cursors.right.isDown)
+            playerDirection = "right";
+        else if (cursors.up.isDown)
+            playerDirection = "up";
+        else if (cursors.down.isDown)
+            playerDirection = "down";
+        else {
+            playerDirection = "stop";
+        }
+
+        playerPlayMoveAnim(player, playerDirection);
         if (player.oldPosition && (x !== player.oldPosition.x ||
             y !== player.oldPosition.y ||
             r !== player.oldPosition.rotation)) {
@@ -195,7 +236,7 @@ function update(time, delta) {
                 {
                     x: this.player.x,
                     y: this.player.y,
-                    rotation: this.player.rotation
+                    direction: playerDirection
                 });
         }
 
@@ -226,24 +267,7 @@ function update(time, delta) {
         // Normalize and scale the velocity so that player can't move faster along a diagonal
         player.body.velocity.normalize().scale(speed);
 
-        // Update the animation last and give left/right animations precedence over up/down animations
-        if (cursors.left.isDown) {
-            player.anims.play("misa-left-walk", true);
-        } else if (cursors.right.isDown) {
-            player.anims.play("misa-right-walk", true);
-        } else if (cursors.up.isDown) {
-            player.anims.play("misa-back-walk", true);
-        } else if (cursors.down.isDown) {
-            player.anims.play("misa-front-walk", true);
-        } else {
-            player.anims.stop();
 
-            // If we were moving, pick and idle frame to use
-            if (prevVelocity.x < 0) player.setTexture("atlas", "misa-left");
-            else if (prevVelocity.x > 0) player.setTexture("atlas", "misa-right");
-            else if (prevVelocity.y < 0) player.setTexture("atlas", "misa-back");
-            else if (prevVelocity.y > 0) player.setTexture("atlas", "misa-front");
-        }
     }
 
 }

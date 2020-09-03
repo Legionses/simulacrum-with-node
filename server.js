@@ -14,7 +14,7 @@ io.on('connection', function (socket) {
     console.log('подключился пользователь');
     // создание нового игрока и добавление го в объект players
     players[socket.id] = {
-        rotation: 0,
+        direction: "down",
         x: 352,
         y: 1216,
         playerID: socket.id,
@@ -35,7 +35,7 @@ io.on('connection', function (socket) {
     socket.on('playerMovement', function (movementData) {
         players[socket.id].x = movementData.x;
         players[socket.id].y = movementData.y;
-        players[socket.id].rotation = movementData.rotation;
+        players[socket.id].direction = movementData.direction;
         // отправляем общее сообщение всем игрокам о перемещении игрока
         socket.broadcast.emit('playerMoved', players[socket.id]);
     });
