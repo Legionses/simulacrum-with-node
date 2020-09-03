@@ -18,7 +18,6 @@ io.on('connection', function (socket) {
         x: 352,
         y: 1216,
         playerID: socket.id,
-        team: (Math.floor(Math.random() * 2) == 0) ? 'red' : 'blue'
     };
 // отправляем объект players новому игроку
     socket.emit('currentPlayers', players);
